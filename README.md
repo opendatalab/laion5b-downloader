@@ -1,10 +1,17 @@
+
+
+
+# LAION-5B下载媒体数据脚本
+
+> 更多数据集下载请到：https://opendatalab.com/  （OpenDataLab 是有影响力的数据开源开放平台，公开数据集触手可及。）
+
 ---
-## 设备及工作环境准备
+### 设备及工作环境准备
 >* 服务器64核128GB 两台
 >* python3
 >* redis  # 这里默认ip为192.168.0.1 端口为6379
 ---
-## 脚本运行
+### 脚本运行
     # 队列添加任务parquet在哪台机器只在此机器运行一个就行 
     python3 add_task.py
     # monitor_disk.py 每个下载机器开启一个程序
@@ -16,7 +23,7 @@
     # 下载情况查看
     python3 speed.py
 ---
-## 配置文件说明 setting.py
+### 配置文件说明 setting.py
     # redis连接配置
     redis_ip = "192.168.0.1"
     redis_port = 6379
@@ -54,7 +61,7 @@
     # save_error_task.py  本地持久化redis错误队列数据 根据需要是否持久化 一般要开启此程序 否则错误较多redis占用较高
     store_error_dir = "./error_task/"
 ---
-## 下载用时统计
+### 下载用时统计
 > laion5b 媒体数据量在58亿多，使用64核128GB带宽750MB  中间调试运行用时30天下载完成
 > 
 > cpu基本上只使用32个，每个占用80%左右。内存128GB占用90GB左右。带宽占满750GB下载速度达到90+MB每秒。 50进程32线程。
