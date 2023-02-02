@@ -65,7 +65,7 @@ def add_task():
         # #  Index(['id','SAMPLE_ID', 'URL', 'TEXT', 'HEIGHT', 'WIDTH', 'LICENSE', 'NSFW', 'similarity', 'image_suffix'], dtype='object')
         for index, row in df.iterrows():
             img_url = row.get("URL")
-            image_id = eval(row.get("hash"))
+            image_id = row.get("hash")
             image_type = row.get("image_suffix", "jpg")
             img_path = f"{dir_path}{image_id}.{image_type}"
             task_json = {"img_path": img_path, "img_url": img_url, "file_name": filename}
