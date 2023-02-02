@@ -2,7 +2,8 @@
 
 
 # LAION-5B下载媒体数据脚本
-
+> LAION-5B parquert 下载地址：https://opendatalab.com/LAION-5B
+> 
 > 更多数据集下载请到：https://opendatalab.com/  （OpenDataLab 是有影响力的数据开源开放平台，公开数据集触手可及。）
 
 ---
@@ -57,6 +58,8 @@
     store_dir = "/mnt/vdc/laion5b/data/"
     # 这里设置磁盘使用阈值是5000 GB 使用超过此阈值爬虫便停止下载直到空间释放出来  单位：GB
     stop_threshold = 5000
+    # 单进程下载多线程数 默认：32
+    thread_num = 32
     
     # save_error_task.py  本地持久化redis错误队列数据 根据需要是否持久化 一般要开启此程序 否则错误较多redis占用较高
     store_error_dir = "./error_task/"
