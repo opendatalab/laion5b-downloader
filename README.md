@@ -2,9 +2,14 @@
 
 
 # LAION-5B下载媒体数据脚本
-> LAION-5B parquert 下载地址：https://opendatalab.com/LAION-5B
+> LAION-5B parquet 下载地址：https://opendatalab.com/LAION-5B
 > 
 > 更多数据集下载请到：https://opendatalab.com/  （OpenDataLab 是有影响力的数据开源开放平台，公开数据集触手可及。）
+---
+### 注意事项
+>* 请务必使用上述提到的parquet下载地址 然后使用此脚本下载
+>* 此parquet是经过大数据平台分析、计算之后合并出来的大宽表，对后续使用下载都比较友好
+>* 脚本不依赖大数据平台，直接可以单机或者分布式高速下载处理
 
 ---
 ### 设备及工作环境准备
