@@ -6,14 +6,16 @@
 
 import time
 import redis
+import setting
 
+from setting import RedisKey
 
-redis_client = redis.Redis(host="192.168.20.191", port=6379, db=0, encoding="utf-8", decode_responses=True)
-error = "laion5b_tongji_error"
-succ = "laion5b_tongji_succ"
+redis_client = redis.Redis(host=setting.redis_ip, port=setting.redis_port, db=setting.redis_db, password=setting.redis_pass, encoding="utf-8", decode_responses=True)
 
 
 def speed():
+    error = RedisKey.tongji_error
+    succ = RedisKey.tongji_succ
     while True:
         s_c = int(redis_client.get(error)) + int(redis_client.get(succ))
         time.sleep(10)

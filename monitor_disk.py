@@ -2,19 +2,22 @@
 # @Time: 2022/12/21 21:01
 # @Author: willian
 # @File：monitor_disk.py
-# @desc:
+# @desc: 监控磁盘使用情况
 
 import time
 import redis
 import socket
 import shutil
+import setting
 
 from loguru import logger
 
+from setting import RedisKey
+
 logger_format = "{time:YYYY-MM-DD HH:mm:ss,SSS} [{thread}] {level} {file} {line} - {message}"
 
-redis_client = redis.Redis(host="192.168.20.191", port=6379, db=0, encoding="utf-8", decode_responses=True)
-tongji_disk = "tongji_worker_disk"
+redis_client = redis.Redis(host=setting.redis_ip, port=setting.redis_port, db=setting.redis_db, password=setting.redis_pass, encoding="utf-8", decode_responses=True)
+tongji_disk = RedisKey.tongji_disk
 
 myname = socket.getfqdn(socket.gethostname())  # 当前机器名称
 myip = socket.gethostbyname(myname).replace(".", "_")  # 当前机器IP
@@ -25,7 +28,7 @@ def monitor_disk():
                rotation="00:00", retention='60 days')
     while True:
         gb = 1024 ** 3  # GB == gigabyte
-        total_b, used_b, free_b = shutil.disk_usage('/mnt/vdc')  # 查看磁盘的使用情况
+        total_b, used_b, free_b = shutil.disk_usage(setting.monitor_disk)  # 查看磁盘的使用情况
         logger.info(f"当前机器：{myname}    当前机器IP:{myip}")
         logger.info('总的磁盘空间: {:6.2f} GB '.format(total_b / gb))
         logger.info('已经使用的 : {:6.2f} GB '.format(used_b / gb))

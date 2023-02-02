@@ -2,7 +2,7 @@
 # @Time: 2022/12/21 20:56
 # @Author: willian
 # @File：downloader.py
-# @desc:
+# @desc: 读取redis任务队列下载图片并保存
 
 import os
 import sys
@@ -12,23 +12,18 @@ import redis
 import queue
 import httpx
 import socket
+import setting
 
 from loguru import logger
+from setting import RedisKey
 from concurrent.futures import ThreadPoolExecutor
 
 logger_format = "{time:YYYY-MM-DD HH:mm:ss,SSS} [{thread}] {level} {file} {line} - {message}"
 
-redis_client = redis.Redis(host="192.168.20.191", port=6379, db=0, encoding="utf-8", decode_responses=True)
-task_key = "laion5b_task"
-tongji_all = "laion5b_tongji_all"
-error_key = "laion5b_task_error"
-tongji_error = "laion5b_tongji_error"
-tongji_succ = "laion5b_tongji_succ"
-tongji_disk = "tongji_worker_disk"
+redis_client = redis.Redis(host=setting.redis_ip, port=setting.redis_port, db=setting.redis_db, password=setting.redis_pass, encoding="utf-8", decode_responses=True)
 
 myname = socket.getfqdn(socket.gethostname())  # 当前机器名称
 myip = socket.gethostbyname(myname).replace(".", "_")  # 当前机器IP
-disk_threshold = 9000  # 这里设置磁盘使用阈值是6000 GB
 
 
 class BoundedThreadPoolExecutor(ThreadPoolExecutor):
@@ -48,7 +43,7 @@ class Downloader():
         logger.add("./logs/download_img/download_img_%s_{time:YYYY-MM-DD}.log" % work_name, format=logger_format, level="INFO", rotation="00:00", retention='7 days')
         self.pre_dir = None
         self.sleep_time = 30
-        self.base_dir = "/mnt/vdc/laion5b/data/"
+        self.base_dir = setting.store_dir
 
     def http_get(self, url, retry_times=2):
         for i in range(retry_times):
@@ -88,21 +83,21 @@ class Downloader():
             task_json.update({"status": status, "error_msg": error_msg})
             task_str = json.dumps(task_json)
             logger.error(f"error_task {task_json}")
-            redis_client.lpush(error_key, task_str)
-            redis_client.incr(tongji_error, 1)
+            redis_client.lpush(RedisKey.error_key, task_str)
+            redis_client.incr(RedisKey.tongji_error, 1)
         else:
-            redis_client.incr(tongji_succ, 1)
+            redis_client.incr(RedisKey.tongji_succ, 1)
 
     def run(self):
-        with BoundedThreadPoolExecutor(32) as executor:
+        with BoundedThreadPoolExecutor(setting.thread_num) as executor:
             task_str = ""
             while True:
                 try:
-                    use_disk = int(redis_client.hget(tongji_disk, myip))
-                    if use_disk > disk_threshold:
+                    use_disk = int(redis_client.hget(RedisKey.tongji_disk, myip))
+                    if use_disk > setting.stop_threshold:
                         time.sleep(30*60)
                         continue
-                    task_str = redis_client.rpop(task_key)
+                    task_str = redis_client.rpop(RedisKey.task_key)
                     # 接受到结束信号主程序 break
                     if task_str and "stop_this_task" in task_str:
                         break
@@ -118,8 +113,8 @@ class Downloader():
                         self.pre_dir = dir_path
                 except Exception as e:
                     logger.error(f"error_task {task_str}    error_info {e}")
-                    redis_client.lpush(error_key, task_str)
-                    redis_client.incr(tongji_error, 1)
+                    redis_client.lpush(RedisKey.error_key, task_str)
+                    redis_client.incr(RedisKey.tongji_error, 1)
                     break
                 executor.submit(self.download, task_json)
 

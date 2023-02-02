@@ -1,40 +1,61 @@
-
-
 ---
 ## 设备及工作环境准备
 >* 服务器64核128GB 两台
 >* python3
->* redis
+>* redis  # 这里默认ip为192.168.0.1 端口为6379
 ---
-## python脚本依赖安装
-    pip3 install redis
-    pip3 install httpx
-    pip3 install httpx[http2]
-    pip3 install httpx[socks]
-    pip3 install pandas
-    pip3 install loguru
-    pip3 install fastparquet
-    pip3 install retrying
-    pip3 install pyarrow
+## 脚本运行
+    # 队列添加任务parquet在哪台机器只在此机器运行一个就行 
+    python3 add_task.py
+    # monitor_disk.py 每个下载机器开启一个程序
+    python monitor_disk.py
+    # 开启10个下载进程
+    for i in {0..10}; do echo "nohup python3 download_img.py $i >/dev/null 2>&1 &" | bash; done
+    # save_error_task.py 把错误队列数据以文本形式保存到本地 根据需要是否开启
+    python3 save_error_task.py
+    # 下载情况查看
+    python3 speed.py
 ---
-## 目录文件说明
-
-> add_task.py  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ----------------------- &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 读取任务parquet文件添加下载任务到 redis 
->
-> monitor_disk.py  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ----------------------- &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 监控磁盘空间使用防止下载比处理的快造成积压磁盘占用高
-> 
-> downloader.py  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ----------------------- &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 读取redis任务进行下载
----
-## 脚本运行注意事项
-> add_task.py 可以配置parquet文件目录自动监控下载parquet文件添加任务  设置目录参数 base_path
-> 
-> monitor_disk.py 启动前配置所要监控磁盘  这里配置的是  shutil.disk_usage('/mnt/vdc')
-> 
-> downloader.py 启动前设置一个空间较充足的的目录  设置目录参数 base_dir
-> 
+## 配置文件说明 setting.py
+    # redis连接配置
+    redis_ip = "192.168.0.1"
+    redis_port = 6379
+    redis_db = 0
+    redis_pass = "****123***"
+    
+    
+    # 使用到的 redis key 配置信息
+    class RedisKey:
+        task_key = "laion5b_task"                 # 存放任务队列
+        tongji_all = "laion5b_tongji_all"         # 统计已经加入了多少
+        error_key = "laion5b_task_error"          # 下载失败的任务队列
+        tongji_error = "laion5b_tongji_error"     # 统计下载失败数
+        tongji_succ = "laion5b_tongji_succ"       # 统计下载完成数
+        tongji_disk = "tongji_worker_disk"        # 监控磁盘使用量
+    
+    
+    # parquet 目录配置 add_task.py 使用  样例：/mnt/vdb/laion5b/parquet/laion1B-nolang/0000~0128.parquet  /mnt/vdb/laion5b/parquet/laion2B-en/0000~0128.parquet
+    parquet_dir = "/mnt/vdb/laion5b/parquet"
+    # 添加任务时候队列中少于5000000 开始执行添加任务
+    addtask_threshold = 5000000
+    # 添加过后的parquet路径写入 done_part.txt
+    done_path = "./done_part.txt"
+    
+    
+    # monitor_disk.py  查看存储空间占用情况
+    monitor_disk = '/mnt/vdc'
+    
+    
+    # downloader.py  下载的图片存储的目录 后续会拼接 laion1B-nolang  laion1B-nolang 等目录
+    store_dir = "/mnt/vdc/laion5b/data/"
+    # 这里设置磁盘使用阈值是5000 GB 使用超过此阈值爬虫便停止下载直到空间释放出来  单位：GB
+    stop_threshold = 5000
+    
+    # save_error_task.py  本地持久化redis错误队列数据 根据需要是否持久化 一般要开启此程序 否则错误较多redis占用较高
+    store_error_dir = "./error_task/"
 ---
 ## 下载用时统计
-> laion5b 媒体数据量在58亿多，使用64核128GB带宽750MB  用时30天下载完成
+> laion5b 媒体数据量在58亿多，使用64核128GB带宽750MB  中间调试运行用时30天下载完成
 > 
 > cpu基本上只使用32个，每个占用80%左右。内存128GB占用90GB左右。带宽占满750GB下载速度达到90+MB每秒。 50进程32线程。
 > 
