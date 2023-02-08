@@ -64,7 +64,7 @@ def add_task():
         logger.info(f"开始添加task任务， task数：{rows}   part_file: {filename}")
         # #  Index(['id','SAMPLE_ID', 'URL', 'TEXT', 'HEIGHT', 'WIDTH', 'LICENSE', 'NSFW', 'similarity', 'image_suffix'], dtype='object')
         for index, row in df.iterrows():
-            img_url = row.get("URL")
+            img_url = row.get("url")
             image_id = row.get("hash")
             image_type = row.get("image_suffix", "jpg")
             img_path = f"{dir_path}{image_id}.{image_type}"
