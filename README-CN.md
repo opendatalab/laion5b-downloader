@@ -31,7 +31,7 @@
     # monitor_disk.py 每个下载机器开启一个程序
     python monitor_disk.py
     # 开启10个下载进程
-    for i in {0..10}; do echo "nohup python3 download_img.py $i >/dev/null 2>&1 &" | bash; done
+    for i in {0..10}; do echo "nohup python3 downloader.py $i >/dev/null 2>&1 &" | bash; done
     # save_error_task.py 把错误队列数据以文本形式保存到本地 根据需要是否开启
     python3 save_error_task.py
     # 下载情况查看
