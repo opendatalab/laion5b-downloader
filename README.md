@@ -33,7 +33,7 @@
     # monitor_disk.py open a program for each download machine
     Python monitor_disk.py
     # Start 10 download processes
-    For i in {0.. 10}; do echo "nohup python3 download_img.py $i >/dev/null 2 > & 1 &" | bash; done
+    For i in {0.. 10}; do echo "nohup python3 downloader.py $i >/dev/null 2 > & 1 &" | bash; done
     # save_error_task.py save the error queue data locally in text form, and open it as needed
     Python3 save_error_task.py
     #Download status view
